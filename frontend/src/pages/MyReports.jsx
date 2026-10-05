@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, TrendingUp, Clock, CheckCircle2, AlertCircle, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -21,7 +21,13 @@ const summaryColors = {
 
 export default function MyReports() {
   const navigate = useNavigate();
-  const { myReports, currentUser, openProfile } = useApp();
+  const { myReports, currentUser, openProfile, refreshIssues } = useApp();
+
+  useEffect(() => {
+    if (refreshIssues) {
+      refreshIssues();
+    }
+  }, [refreshIssues]);
 
   const [search, setSearch] = useState('');
   const [activeStatus, setActiveStatus] = useState('all');
@@ -75,25 +81,27 @@ export default function MyReports() {
           <div>
             <h1 className="font-bold text-lg">My Reports</h1>
             <p className="text-green-200 text-xs">
-              {currentUser.location}
+              {currentUser?.area ? `${currentUser.area}${currentUser?.ward ? ` • ${currentUser.ward}` : ''}` : (currentUser?.location || 'Chennai, Zone 4 • Anna Nagar')}
             </p>
           </div>
-          {/* Touchable Profile - Aishwarya (No Photo) */}
-          <button
-            onClick={openProfile}
-            id="myreports-profile-btn"
-            className="flex items-center gap-2 bg-white/15 hover:bg-white/25 active:scale-95 transition-all py-1.5 px-3 rounded-full text-left cursor-pointer border border-white/20 shadow-xs"
-            aria-label={`View ${currentUser.name}'s profile`}
-            title={`View profile (${currentUser.name})`}
-          >
-            <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
-              <User size={13} className="text-white" />
-            </div>
-            <div className="text-left leading-tight">
-              <div className="text-xs font-bold text-white">{currentUser.name}</div>
-              <div className="text-[10px] text-green-200 font-medium">View Profile</div>
-            </div>
-          </button>
+          {/* Touchable Profile */}
+          {currentUser && (
+            <button
+              onClick={openProfile}
+              id="myreports-profile-btn"
+              className="flex items-center gap-2 bg-white/15 hover:bg-white/25 active:scale-95 transition-all py-1.5 px-3 rounded-full text-left cursor-pointer border border-white/20 shadow-xs"
+              aria-label={`View ${currentUser.name}'s profile`}
+              title={`View profile (${currentUser.name})`}
+            >
+              <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
+                <User size={13} className="text-white" />
+              </div>
+              <div className="text-left leading-tight">
+                <div className="text-xs font-bold text-white">{currentUser.name}</div>
+                <div className="text-[10px] text-green-200 font-medium">View Profile</div>
+              </div>
+            </button>
+          )}
         </div>
       </header>
 

@@ -35,3 +35,14 @@ desktop.ini
 
 # Coverage
 coverage/
+
+# Python & Virtualenv
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite
+*.sqlite3

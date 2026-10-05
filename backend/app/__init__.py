@@ -1,0 +1,1 @@
+"""CivicConnect FastAPI Backend Package"""

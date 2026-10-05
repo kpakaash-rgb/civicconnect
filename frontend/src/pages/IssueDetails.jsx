@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft, MapPin, Users, Calendar, Building2,
-  CheckCircle, AlertTriangle, Share2, Flag, X, ArrowRight
+  CheckCircle, AlertTriangle, Share2, Flag, X, ArrowRight, Loader2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { getIssue as fetchIssueApi } from '../services/api';
 import IssueTimeline from '../components/IssueTimeline';
 import StatusBadge from '../components/StatusBadge';
 import MapView from '../components/MapView';
@@ -13,11 +14,48 @@ import Toast from '../components/Toast';
 export default function IssueDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getIssueById } = useApp();
-  const issue = getIssueById(id);
+  const { getIssueById, issues } = useApp();
 
+  const [issue, setIssue] = useState(() => getIssueById(id));
+  const [loading, setLoading] = useState(!issue);
   const [verifyState, setVerifyState] = useState(null); // null | 'confirmed' | 'rejected'
   const [toast, setToast] = useState(null);
+
+  // Sync with AppContext issues or fetch directly from API
+  useEffect(() => {
+    const cached = getIssueById(id);
+    if (cached) {
+      setIssue(cached);
+      setLoading(false);
+    }
+
+    let isMounted = true;
+    fetchIssueApi(id)
+      .then((data) => {
+        if (isMounted && data) {
+          setIssue(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('[CivicConnect] Could not fetch fresh issue from API:', err.message);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, issues, getIssueById]);
+
+  if (loading && !issue) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+        <Loader2 size={36} className="text-green-600 animate-spin mb-3" />
+        <p className="text-sm font-semibold text-gray-600">Loading report details...</p>
+      </div>
+    );
+  }
 
   if (!issue) {
     return (
@@ -32,10 +70,11 @@ export default function IssueDetails() {
     );
   }
 
+  const timelineSteps = issue.timeline || [];
   const isResolved = issue.status === 'Resolved';
-  const currentStep = issue.timeline.findIndex((t) => !t.done);
-  const doneCount = issue.timeline.filter((t) => t.done).length;
-  const progressPct = Math.round((doneCount / issue.timeline.length) * 100);
+  const currentStep = timelineSteps.findIndex((t) => !t.done);
+  const doneCount = timelineSteps.filter((t) => t.done).length;
+  const progressPct = timelineSteps.length > 0 ? Math.round((doneCount / timelineSteps.length) * 100) : 0;
 
   const handleVerify = (confirm) => {
     setVerifyState(confirm ? 'confirmed' : 'rejected');

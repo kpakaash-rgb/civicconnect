@@ -63,9 +63,10 @@ const howItWorks = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { currentUser, openProfile } = useApp();
-  const recentIssues = issues.slice(0, 3);
-  const inProgressCount = issues.filter(i => i.status === 'In Progress').length;
+  const { issues: appIssues, currentUser, openProfile } = useApp();
+  const activeIssues = appIssues && appIssues.length > 0 ? appIssues : issues;
+  const recentIssues = activeIssues.slice(0, 3);
+  const inProgressCount = activeIssues.filter(i => i.status === 'In Progress').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,24 +99,39 @@ export default function Home() {
               <Menu size={18} />
             </button>
 
-            {/* Touchable Profile - Aishwarya (No Photo) */}
-            <button
-              onClick={openProfile}
-              id="home-profile-btn"
-              className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white border border-white/20 cursor-pointer shadow-xs"
-              aria-label={`View ${currentUser.name}'s profile`}
-              title={`View profile (${currentUser.name})`}
-            >
-              <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
-                <User size={13} className="text-white" />
-              </div>
-              <span className="text-xs font-semibold">{currentUser.name}</span>
-            </button>
+            {currentUser && (
+              <button
+                onClick={openProfile}
+                id="home-profile-btn"
+                className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white border border-white/20 cursor-pointer shadow-xs"
+                aria-label={`View ${currentUser.name}'s profile`}
+                title={`View profile (${currentUser.name})`}
+              >
+                <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
+                  <User size={13} className="text-white" />
+                </div>
+                <span className="text-xs font-semibold">{currentUser.name}</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Hero section */}
         <div className="px-4 pt-4 pb-8">
+          {currentUser && (
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-xs font-semibold text-green-100">
+                Welcome, <strong className="text-white font-bold">{currentUser.name}</strong>
+              </span>
+              {currentUser.area && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-green-100 bg-white/15 px-2.5 py-0.5 rounded-full border border-white/15 font-medium">
+                  <MapPin size={10} className="text-green-300" />
+                  {currentUser.area}
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="inline-flex items-center gap-1.5 bg-white/15 text-green-100 text-xs font-medium px-3 py-1.5 rounded-full mb-3">
             <Zap size={11} />
             {inProgressCount} active reports being resolved in your ward today

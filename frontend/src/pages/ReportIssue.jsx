@@ -82,17 +82,21 @@ export default function ReportIssue() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    const newIssue = addReport({
-      title: `${form.issueLabel || form.category} – ${form.location.split(',')[0]}`,
-      category: form.category,
-      location: form.location,
-      description: form.description,
-      severity: form.severity,
-      imagePreview: form.imagePreview,
-    });
-    setSubmittedIssue(newIssue);
-    setLoading(false);
+    try {
+      const newIssue = await addReport({
+        title: `${form.issueLabel || form.category} – ${form.location.split(',')[0]}`,
+        category: form.category,
+        location: form.location,
+        description: form.description,
+        severity: form.severity,
+        imagePreview: form.imagePreview,
+      });
+      setSubmittedIssue(newIssue);
+    } catch (err) {
+      setToast({ message: 'Failed to submit report. Please try again.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const progressPct = ((step + 1) / STEPS.length) * 100;
@@ -118,9 +122,9 @@ export default function ReportIssue() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500">Status</p>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                  Under Review
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  {submittedIssue.status || 'Reported'}
                 </span>
               </div>
             </div>

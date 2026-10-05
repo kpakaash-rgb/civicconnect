@@ -13,6 +13,20 @@ const statusConfig = {
     dot: 'bg-blue-500',
     label: 'Under Review',
   },
+  'Assigned': {
+    bg: 'bg-purple-50',
+    text: 'text-purple-700',
+    border: 'border-purple-200',
+    dot: 'bg-purple-500',
+    label: 'Assigned',
+  },
+  'Pending': {
+    bg: 'bg-amber-50',
+    text: 'text-amber-700',
+    border: 'border-amber-200',
+    dot: 'bg-amber-500',
+    label: 'Pending',
+  },
   'In Progress': {
     bg: 'bg-amber-50',
     text: 'text-amber-700',

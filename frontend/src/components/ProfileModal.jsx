@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X, MapPin, Mail, Phone, Calendar, Award, Eye, Zap, Sparkles,
-  CheckCircle2, ChevronRight, FileText, PlusCircle, ShieldCheck, User
+  CheckCircle2, ChevronRight, FileText, PlusCircle, ShieldCheck, User, LogOut
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -14,7 +14,7 @@ const badgeIcons = {
 };
 
 export default function ProfileModal() {
-  const { isProfileOpen, closeProfile, currentUser, myReports } = useApp();
+  const { isProfileOpen, closeProfile, currentUser, myReports, logout } = useApp();
   const navigate = useNavigate();
 
   // Close on Escape key
@@ -32,7 +32,7 @@ export default function ProfileModal() {
     };
   }, [isProfileOpen, closeProfile]);
 
-  if (!isProfileOpen) return null;
+  if (!isProfileOpen || !currentUser) return null;
 
   const handleNavigate = (path) => {
     closeProfile();
@@ -101,10 +101,26 @@ export default function ProfileModal() {
               <h3 className="text-xl font-extrabold text-gray-900">{currentUser.name}</h3>
               <CheckCircle2 size={18} className="text-green-600 fill-green-100" />
             </div>
-            <p className="text-xs font-medium text-green-700 mt-0.5">{currentUser.role}</p>
-            <p className="text-xs text-gray-600 mt-2 leading-relaxed bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-              "{currentUser.bio}"
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <span className="text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                {currentUser.roleTitle || 'Verified Citizen'}
+              </span>
+              {currentUser.age && (
+                <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {currentUser.age} years
+                </span>
+              )}
+              {currentUser.area && (
+                <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {currentUser.area}
+                </span>
+              )}
+            </div>
+            {currentUser.bio && (
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                "{currentUser.bio}"
+              </p>
+            )}
           </div>
 
           {/* Quick Civic Stats */}
@@ -114,15 +130,15 @@ export default function ProfileModal() {
               <span className="text-[10px] font-medium text-emerald-600 leading-tight block">Reports</span>
             </div>
             <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-2.5 text-center">
-              <span className="block text-lg font-extrabold text-blue-800">{currentUser.resolvedReports}</span>
+              <span className="block text-lg font-extrabold text-blue-800">{currentUser.resolvedReports || 0}</span>
               <span className="text-[10px] font-medium text-blue-600 leading-tight block">Resolved</span>
             </div>
             <div className="bg-purple-50/80 border border-purple-100 rounded-2xl p-2.5 text-center">
-              <span className="block text-lg font-extrabold text-purple-800">{currentUser.verifications}</span>
+              <span className="block text-lg font-extrabold text-purple-800">{currentUser.verifications || 0}</span>
               <span className="text-[10px] font-medium text-purple-600 leading-tight block">Verified</span>
             </div>
             <div className="bg-amber-50/80 border border-amber-100 rounded-2xl p-2.5 text-center">
-              <span className="block text-lg font-extrabold text-amber-800">{currentUser.reputationScore}</span>
+              <span className="block text-lg font-extrabold text-amber-800">{currentUser.reputationScore || 90}</span>
               <span className="text-[10px] font-medium text-amber-600 leading-tight block">Score</span>
             </div>
           </div>
@@ -162,20 +178,28 @@ export default function ProfileModal() {
               Ward & Contact Details
             </h4>
             <div className="flex items-center gap-2.5 text-xs text-gray-700">
+              <User size={14} className="text-green-600 shrink-0" />
+              <span className="font-medium text-gray-900">{currentUser.name}</span>
+              {currentUser.age && <span className="text-gray-500">({currentUser.age} years)</span>}
+            </div>
+            <div className="flex items-center gap-2.5 text-xs text-gray-700">
               <MapPin size={14} className="text-green-600 shrink-0" />
-              <span className="font-medium">{currentUser.location}</span>
+              <span className="font-medium">{currentUser.area || currentUser.location || 'Anna Nagar'}</span>
+              {currentUser.ward && <span className="text-xs text-green-700 font-semibold">• {currentUser.ward}</span>}
             </div>
             <div className="flex items-center gap-2.5 text-xs text-gray-700">
               <Mail size={14} className="text-green-600 shrink-0" />
               <span>{currentUser.email}</span>
             </div>
-            <div className="flex items-center gap-2.5 text-xs text-gray-700">
-              <Phone size={14} className="text-green-600 shrink-0" />
-              <span>{currentUser.phone}</span>
-            </div>
+            {currentUser.phone && (
+              <div className="flex items-center gap-2.5 text-xs text-gray-700">
+                <Phone size={14} className="text-green-600 shrink-0" />
+                <span>{currentUser.phone}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2.5 text-xs text-gray-700">
               <Calendar size={14} className="text-green-600 shrink-0" />
-              <span>Citizen Member since {currentUser.joinedDate}</span>
+              <span>Citizen Member • Chennai</span>
             </div>
           </div>
 
@@ -197,6 +221,29 @@ export default function ProfileModal() {
               <FileText size={16} className="text-green-600" />
               View All My Reports
               <ChevronRight size={14} className="text-gray-400" />
+            </button>
+            <button
+              onClick={() => handleNavigate('/authority-login')}
+              id="profile-action-authority-portal"
+              className="w-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-100 active:scale-98 transition-all"
+            >
+              <ShieldCheck size={16} className="text-emerald-700" />
+              Municipal Authority Portal
+              <ChevronRight size={14} className="text-emerald-500" />
+            </button>
+
+            {/* Citizen Logout button */}
+            <button
+              onClick={() => {
+                logout();
+                closeProfile();
+                navigate('/login');
+              }}
+              id="citizen-logout-button"
+              className="w-full bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
+            >
+              <LogOut size={16} className="text-red-600" />
+              Sign Out
             </button>
           </div>
         </div>

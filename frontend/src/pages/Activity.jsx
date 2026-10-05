@@ -63,19 +63,20 @@ export default function Activity() {
                 {unreadCount} new
               </span>
             )}
-            {/* Touchable Profile - Aishwarya (No Photo) */}
-            <button
-              onClick={openProfile}
-              id="activity-profile-btn"
-              className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white border border-white/20 cursor-pointer shadow-xs"
-              aria-label={`View ${currentUser.name}'s profile`}
-              title={`View profile (${currentUser.name})`}
-            >
-              <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
-                <User size={13} className="text-white" />
-              </div>
-              <span className="text-xs font-semibold">{currentUser.name}</span>
-            </button>
+            {currentUser && (
+              <button
+                onClick={openProfile}
+                id="activity-profile-btn"
+                className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white border border-white/20 cursor-pointer shadow-xs"
+                aria-label={`View ${currentUser.name}'s profile`}
+                title={`View profile (${currentUser.name})`}
+              >
+                <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
+                  <User size={13} className="text-white" />
+                </div>
+                <span className="text-xs font-semibold">{currentUser.name}</span>
+              </button>
+            )}
           </div>
         </div>
       </header>

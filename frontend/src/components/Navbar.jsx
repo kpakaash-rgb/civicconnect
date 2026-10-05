@@ -1,4 +1,4 @@
-import { MapPin, Menu, Bell, User } from 'lucide-react';
+import { MapPin, Menu, Bell, User, Building2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
@@ -24,10 +24,19 @@ export default function Navbar({ title, subtitle, showLocation = false }) {
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          <Link
+            to="/authority-login"
+            id="navbar-authority-btn"
+            className="flex items-center gap-1 bg-green-900/50 hover:bg-green-900 border border-white/20 text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all"
+            title="Authority Portal Login"
+          >
+            <Building2 size={13} className="text-green-300" />
+            <span className="hidden sm:inline">Authority Portal</span>
+          </Link>
           {showLocation && (
-            <button className="flex items-center gap-1 bg-white/10 text-white text-xs font-medium px-2.5 py-1.5 rounded-full hover:bg-white/20 transition-colors">
+            <button className="flex items-center gap-1 bg-white/10 text-white text-xs font-medium px-2 py-1 rounded-full hover:bg-white/20 transition-colors">
               <div className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse" />
-              Live Sync
+              Live
             </button>
           )}
           <Link
@@ -47,19 +56,21 @@ export default function Navbar({ title, subtitle, showLocation = false }) {
             <Menu size={18} />
           </button>
 
-          {/* Touchable Profile - Aishwarya (No Photo) */}
-          <button
-            onClick={openProfile}
-            id="navbar-profile-btn"
-            className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white border border-white/20 cursor-pointer shadow-xs"
-            aria-label={`View ${currentUser.name}'s profile`}
-            title={`View profile (${currentUser.name})`}
-          >
-            <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
-              <User size={13} className="text-white" />
-            </div>
-            <span className="text-xs font-semibold">{currentUser.name}</span>
-          </button>
+          {/* Touchable Profile */}
+          {currentUser && (
+            <button
+              onClick={openProfile}
+              id="navbar-profile-btn"
+              className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white border border-white/20 cursor-pointer shadow-xs"
+              aria-label={`View ${currentUser.name}'s profile`}
+              title={`View profile (${currentUser.name})`}
+            >
+              <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
+                <User size={13} className="text-white" />
+              </div>
+              <span className="text-xs font-semibold">{currentUser.name}</span>
+            </button>
+          )}
         </div>
       </div>
 

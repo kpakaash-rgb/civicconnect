@@ -281,7 +281,7 @@ export const categories = [
   { id: 'Other', label: 'Other', icon: '📌' },
 ];
 
-export const statuses = ['Reported', 'Under Review', 'In Progress', 'Resolved'];
+export const statuses = ['Reported', 'Under Review', 'Assigned', 'In Progress', 'Resolved'];
 
 export const communityStats = {
   issuesReported: 1284,
