@@ -197,6 +197,7 @@ def create_issue(db: Session, issue_in: IssueCreate) -> Issue:
         created_at=now,
     )
     db.add(initial_update)
+
     db.commit()
     db.refresh(new_issue)
 

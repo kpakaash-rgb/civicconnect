@@ -179,6 +179,65 @@ export default function IssueDetails() {
           </div>
         </div>
 
+        {/* Evidence Review */}
+        <div className="card p-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Evidence Review</p>
+          {issue.evidence && (issue.evidence.available || issue.evidence.status === 'checked') ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-1.5 border-b border-gray-100 text-sm">
+                <span className="text-gray-500">Status</span>
+                <span className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <CheckCircle size={14} className="text-green-600" />
+                  AI-assisted review complete
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-gray-100 text-sm">
+                <span className="text-gray-500">AI-generated probability</span>
+                <span className="font-mono font-bold text-gray-900">
+                  {typeof issue.evidence.ai_generated_probability === 'number'
+                    ? `${Math.round(issue.evidence.ai_generated_probability * 100)}%`
+                    : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-gray-100 text-sm">
+                <span className="text-gray-500">Risk</span>
+                <span className={`font-semibold capitalize px-2 py-0.5 rounded text-xs ${
+                  issue.evidence.risk_level === 'high'
+                    ? 'bg-red-100 text-red-700'
+                    : issue.evidence.risk_level === 'medium'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-green-100 text-green-700'
+                }`}>
+                  {issue.evidence.risk_level || 'Low'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-gray-100 text-sm">
+                <span className="text-gray-500">Provider</span>
+                <span className="font-semibold text-gray-800 capitalize">
+                  {issue.evidence.provider || 'Hive'}
+                </span>
+              </div>
+              {issue.evidence.message && (
+                <p className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-2">
+                  {issue.evidence.message}
+                </p>
+              )}
+              <p className="text-[10px] text-gray-400 italic pt-1">
+                AI detection is probabilistic and should not be treated as definitive proof of authenticity.
+              </p>
+            </div>
+          ) : (
+            <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+              <p className="text-xs text-gray-600 font-medium">
+                Evidence review was unavailable when this report was submitted.
+              </p>
+              <p className="text-[11px] text-gray-400 mt-1">
+                The report was accepted and processed normally by the municipal system.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Latest update */}
         {issue.updates.length > 0 && (
           <div className="card p-4">

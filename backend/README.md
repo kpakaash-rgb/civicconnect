@@ -50,6 +50,19 @@ The backend manages three core relational tables:
    - `updated_by`: Authority officer/unit
    - `created_at`: Timestamp of status transition
 
+4. **`evidence`**:
+   - `id`: Integer primary key (autoincrement)
+   - `issue_id`: Foreign key reference to `issues.id` (CASCADE)
+   - `filename`: Image filename
+   - `content_type`: Image MIME type (`image/jpeg`, `image/png`, `image/webp`)
+   - `ai_generated_probability`: Float score (0.0 to 1.0)
+   - `risk_level`: Advisory risk (`low`, `medium`, `high`, `unavailable`)
+   - `status`: Verification status (`checked`, `unavailable`)
+   - `provider`: Detection provider (`hive`)
+   - `message`: Review message/finding
+   - `checked_at`: Timestamp of verification
+   - `created_at`: Timestamp of record creation
+
 ---
 
 ## Environment Variables
@@ -62,8 +75,10 @@ cp .env.example .env
 
 | Variable | Description | Default |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL or SQLite connection string | `postgresql://postgres:password@localhost:5432/civicconnect` |
+| `DATABASE_URL` | PostgreSQL or SQLite connection string | `sqlite:///./civicconnect.db` |
 | `FRONTEND_URL` | Deployed Frontend URL (Vercel or localhost) | `http://localhost:5173` |
+| `HIVE_API_KEY` | Hive AI Deepfake/Synthetic Media Detection API Key | _Optional (empty for graceful fallback)_ |
+| `HIVE_API_URL` | Hive AI Task Sync Endpoint | `https://api.thehive.ai/api/v2/task/sync` |
 
 > **PostgreSQL Configuration Note**:
 > For local PostgreSQL:
@@ -125,6 +140,9 @@ The API will be available at:
 - `GET /api/issues/{issue_id}` — Get single issue with full timeline and updates history
 - `PUT /api/issues/{issue_id}/status` — Authority updates status and adds field remarks
 - `GET /api/users/{user_id}/issues` — List all issues submitted by a given citizen
+
+### AI Evidence Review
+- `POST /api/evidence/check` — Upload image file (`multipart/form-data`) for AI synthetic media detection (JPEG, PNG, WebP)
 
 ---
 

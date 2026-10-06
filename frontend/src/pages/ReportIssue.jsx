@@ -6,6 +6,8 @@ import {
   ArrowRight, Upload, Image as ImageIcon, Shield
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { checkEvidence } from '../services/api';
+import EvidenceReviewCard from '../components/EvidenceReviewCard';
 import Toast from '../components/Toast';
 
 const issueTypes = [
@@ -42,12 +44,14 @@ export default function ReportIssue() {
     description: '',
     severity: 'Medium',
   });
+  const [evidenceResult, setEvidenceResult] = useState(null);
+  const [isCheckingEvidence, setIsCheckingEvidence] = useState(false);
   const [submittedIssue, setSubmittedIssue] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -59,6 +63,22 @@ export default function ReportIssue() {
       setForm((f) => ({ ...f, imagePreview: reader.result, imageFile: file }));
     };
     reader.readAsDataURL(file);
+
+    // Run AI-assisted image evidence review
+    setIsCheckingEvidence(true);
+    setEvidenceResult(null);
+    try {
+      const res = await checkEvidence(file);
+      setEvidenceResult(res);
+    } catch (err) {
+      setEvidenceResult({
+        success: false,
+        available: false,
+        message: 'AI evidence verification unavailable. The report can still be submitted.',
+      });
+    } finally {
+      setIsCheckingEvidence(false);
+    }
   };
 
   const validate = () => {
@@ -90,6 +110,7 @@ export default function ReportIssue() {
         description: form.description,
         severity: form.severity,
         imagePreview: form.imagePreview,
+        evidence: evidenceResult,
       });
       setSubmittedIssue(newIssue);
     } catch (err) {
@@ -159,7 +180,21 @@ export default function ReportIssue() {
               Track This Report <ArrowRight size={16} />
             </button>
             <button
-              onClick={() => { setSubmittedIssue(null); setStep(0); setForm({ imagePreview: null, imageFile: null, category: '', issueLabel: '', location: 'Anna Nagar 2nd Avenue, Ward 104, Chennai', description: '', severity: 'Medium' }); }}
+              onClick={() => {
+                setSubmittedIssue(null);
+                setStep(0);
+                setForm({
+                  imagePreview: null,
+                  imageFile: null,
+                  category: '',
+                  issueLabel: '',
+                  location: 'Anna Nagar 2nd Avenue, Ward 104, Chennai',
+                  description: '',
+                  severity: 'Medium',
+                });
+                setEvidenceResult(null);
+                setIsCheckingEvidence(false);
+              }}
               className="w-full mt-2 py-2.5 text-sm text-green-600 font-semibold hover:text-green-700"
             >
               Submit Another Report
@@ -234,8 +269,12 @@ export default function ReportIssue() {
                   className="w-full h-64 object-cover rounded-2xl"
                 />
                 <button
-                  onClick={() => setForm((f) => ({ ...f, imagePreview: null, imageFile: null }))}
-                  className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center"
+                  onClick={() => {
+                    setForm((f) => ({ ...f, imagePreview: null, imageFile: null }));
+                    setEvidenceResult(null);
+                    setIsCheckingEvidence(false);
+                  }}
+                  className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center cursor-pointer"
                 >
                   <X size={16} className="text-white" />
                 </button>
@@ -264,6 +303,15 @@ export default function ReportIssue() {
             <p className="text-xs text-gray-400 text-center mt-3">
               Photo is optional but strongly recommended
             </p>
+
+            {/* AI-assisted Evidence Review Card */}
+            <div className="mt-4">
+              <EvidenceReviewCard
+                evidence={evidenceResult}
+                isChecking={isCheckingEvidence}
+                hasImage={Boolean(form.imagePreview || form.imageFile)}
+              />
+            </div>
           </div>
         )}
 
@@ -437,36 +485,45 @@ export default function ReportIssue() {
             <h2 className="text-lg font-bold text-gray-900 mb-1">Evidence Summary</h2>
             <p className="text-sm text-gray-500 mb-4">Review the checks before submitting your report.</p>
 
-            <div className="card p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircle size={16} className="text-green-600" />
+            <div className="space-y-3">
+              {/* AI-Assisted Evidence Verification Result */}
+              <EvidenceReviewCard
+                evidence={evidenceResult}
+                isChecking={isCheckingEvidence}
+                hasImage={Boolean(form.imagePreview || form.imageFile)}
+              />
+
+              <div className="card p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle size={16} className="text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Image attached</p>
+                    <p className="text-xs text-gray-500">
+                      {form.imagePreview ? 'Photo attached to your report' : 'No photo — report will still be processed'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Image received</p>
-                  <p className="text-xs text-gray-500">
-                    {form.imagePreview ? 'Photo attached to your report' : 'No photo — report will still be processed'}
-                  </p>
+                <div className="border-t border-gray-100" />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle size={16} className="text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Location information available</p>
+                    <p className="text-xs text-gray-500">{form.location}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="border-t border-gray-100" />
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircle size={16} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Location information available</p>
-                  <p className="text-xs text-gray-500">{form.location}</p>
-                </div>
-              </div>
-              <div className="border-t border-gray-100" />
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircle size={16} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">No likely duplicate found</p>
-                  <p className="text-xs text-gray-500">No identical reports in this area in the last 24h</p>
+                <div className="border-t border-gray-100" />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle size={16} className="text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">No likely duplicate found</p>
+                    <p className="text-xs text-gray-500">No identical reports in this area in the last 24h</p>
+                  </div>
                 </div>
               </div>
             </div>

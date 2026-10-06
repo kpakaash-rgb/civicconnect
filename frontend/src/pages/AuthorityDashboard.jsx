@@ -10,6 +10,7 @@ import { useApp } from '../context/AppContext';
 import { getIssues as fetchIssuesApi } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import IssueTimeline from '../components/IssueTimeline';
+import EvidenceReviewCard from '../components/EvidenceReviewCard';
 import Toast from '../components/Toast';
 
 export default function AuthorityDashboard() {
@@ -490,6 +491,7 @@ export default function AuthorityDashboard() {
                   <th className="py-3 px-4">Issue Type</th>
                   <th className="py-3 px-4">Location</th>
                   <th className="py-3 px-4">Priority</th>
+                  <th className="py-3 px-4">Evidence</th>
                   <th className="py-3 px-4">Current Status</th>
                   <th className="py-3 px-4">Date Reported</th>
                   <th className="py-3 px-4 text-right">Actions</th>
@@ -498,7 +500,7 @@ export default function AuthorityDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {filteredReports.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-gray-500">
+                    <td colSpan={8} className="py-12 text-center text-gray-500">
                       <div className="max-w-xs mx-auto space-y-2">
                         <Search size={32} className="mx-auto text-gray-300" />
                         <p className="font-semibold text-gray-700">No reports match your filters</p>
@@ -563,6 +565,25 @@ export default function AuthorityDashboard() {
                         {/* Priority */}
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <StatusBadge status={report.priority} type="priority" />
+                        </td>
+
+                        {/* Evidence */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {report.evidence && (report.evidence.available || report.evidence.status === 'checked') ? (
+                            report.evidence.risk_level === 'high' || (report.evidence.ai_generated_probability ?? 0) >= 0.5 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                Review recommended ({Math.round((report.evidence.ai_generated_probability ?? 0) * 100)}%)
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">
+                                Low risk ({Math.round((report.evidence.ai_generated_probability ?? 0) * 100)}%)
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-[11px] text-gray-400">
+                              {report.image ? 'Unavailable' : 'No photo'}
+                            </span>
+                          )}
                         </td>
 
                         {/* Current Status */}
@@ -787,6 +808,15 @@ export default function AuthorityDashboard() {
                       </span>
                     </div>
                   )}
+                </div>
+
+                {/* AI Evidence Review */}
+                <div>
+                  <EvidenceReviewCard
+                    evidence={selectedReport.evidence}
+                    hasImage={Boolean(selectedReport.image)}
+                    isAuthority={true}
+                  />
                 </div>
 
                 {/* Assigned Crew */}
