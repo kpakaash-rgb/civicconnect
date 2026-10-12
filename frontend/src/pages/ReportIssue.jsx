@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, ChevronRight, ChevronLeft, MapPin, CheckCircle,
   AlertTriangle, Lightbulb, Droplets, Construction, Trash2, X,
-  ArrowRight, Upload, Image as ImageIcon, Shield
+  ArrowRight, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { checkEvidence } from '../services/api';
-import EvidenceReviewCard from '../components/EvidenceReviewCard';
 import Toast from '../components/Toast';
 
 const issueTypes = [
@@ -27,7 +25,7 @@ const severityOptions = [
   { id: 'High', label: 'High', desc: 'Safety risk – urgent', color: 'border-red-300 text-red-600', active: 'border-red-500 bg-red-50' },
 ];
 
-const STEPS = ['Photo', 'Issue Type', 'Location', 'Description', 'Severity', 'Evidence', 'Submit'];
+const STEPS = ['Photo', 'Issue Type', 'Location', 'Description', 'Severity', 'Submit'];
 
 export default function ReportIssue() {
   const navigate = useNavigate();
@@ -44,14 +42,12 @@ export default function ReportIssue() {
     description: '',
     severity: 'Medium',
   });
-  const [evidenceResult, setEvidenceResult] = useState(null);
-  const [isCheckingEvidence, setIsCheckingEvidence] = useState(false);
   const [submittedIssue, setSubmittedIssue] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const handleImageSelect = async (e) => {
+  const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -63,22 +59,6 @@ export default function ReportIssue() {
       setForm((f) => ({ ...f, imagePreview: reader.result, imageFile: file }));
     };
     reader.readAsDataURL(file);
-
-    // Run AI-assisted image evidence review
-    setIsCheckingEvidence(true);
-    setEvidenceResult(null);
-    try {
-      const res = await checkEvidence(file);
-      setEvidenceResult(res);
-    } catch (err) {
-      setEvidenceResult({
-        success: false,
-        available: false,
-        message: 'AI evidence verification unavailable. The report can still be submitted.',
-      });
-    } finally {
-      setIsCheckingEvidence(false);
-    }
   };
 
   const validate = () => {
@@ -110,7 +90,6 @@ export default function ReportIssue() {
         description: form.description,
         severity: form.severity,
         imagePreview: form.imagePreview,
-        evidence: evidenceResult,
       });
       setSubmittedIssue(newIssue);
     } catch (err) {
@@ -192,8 +171,6 @@ export default function ReportIssue() {
                   description: '',
                   severity: 'Medium',
                 });
-                setEvidenceResult(null);
-                setIsCheckingEvidence(false);
               }}
               className="w-full mt-2 py-2.5 text-sm text-green-600 font-semibold hover:text-green-700"
             >
@@ -271,8 +248,6 @@ export default function ReportIssue() {
                 <button
                   onClick={() => {
                     setForm((f) => ({ ...f, imagePreview: null, imageFile: null }));
-                    setEvidenceResult(null);
-                    setIsCheckingEvidence(false);
                   }}
                   className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center cursor-pointer"
                 >
@@ -303,15 +278,6 @@ export default function ReportIssue() {
             <p className="text-xs text-gray-400 text-center mt-3">
               Photo is optional but strongly recommended
             </p>
-
-            {/* AI-assisted Evidence Review Card */}
-            <div className="mt-4">
-              <EvidenceReviewCard
-                evidence={evidenceResult}
-                isChecking={isCheckingEvidence}
-                hasImage={Boolean(form.imagePreview || form.imageFile)}
-              />
-            </div>
           </div>
         )}
 
@@ -479,90 +445,8 @@ export default function ReportIssue() {
           </div>
         )}
 
-        {/* Step 5: Evidence Check */}
+        {/* Step 5: Submit */}
         {step === 5 && (
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-1">Evidence Summary</h2>
-            <p className="text-sm text-gray-500 mb-4">Review the checks before submitting your report.</p>
-
-            <div className="space-y-3">
-              {/* AI-Assisted Evidence Verification Result */}
-              <EvidenceReviewCard
-                evidence={evidenceResult}
-                isChecking={isCheckingEvidence}
-                hasImage={Boolean(form.imagePreview || form.imageFile)}
-              />
-
-              <div className="card p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <CheckCircle size={16} className="text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Image attached</p>
-                    <p className="text-xs text-gray-500">
-                      {form.imagePreview ? 'Photo attached to your report' : 'No photo — report will still be processed'}
-                    </p>
-                  </div>
-                </div>
-                <div className="border-t border-gray-100" />
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <CheckCircle size={16} className="text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Location information available</p>
-                    <p className="text-xs text-gray-500">{form.location}</p>
-                  </div>
-                </div>
-                <div className="border-t border-gray-100" />
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <CheckCircle size={16} className="text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">No likely duplicate found</p>
-                    <p className="text-xs text-gray-500">No identical reports in this area in the last 24h</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
-              <Shield size={16} className="text-green-600 flex-shrink-0" />
-              <div>
-                <p className="text-xs font-bold text-green-700">Evidence confidence: High</p>
-                <p className="text-xs text-green-600 mt-0.5">
-                  Your report has sufficient information to be reviewed by the municipal team.
-                </p>
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="card p-4 mt-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Report Summary</p>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Type</span>
-                  <span className="font-medium text-gray-900">{form.issueLabel || form.category}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Priority</span>
-                  <span className={`font-medium ${form.severity === 'High' ? 'text-red-600' : form.severity === 'Medium' ? 'text-amber-600' : 'text-gray-600'}`}>
-                    {form.severity}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Location</span>
-                  <span className="font-medium text-gray-900 text-right max-w-[60%]">{form.location}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 6: Submit */}
-        {step === 6 && (
           <div className="text-center py-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle size={28} className="text-green-600" />
@@ -610,6 +494,8 @@ export default function ReportIssue() {
             </button>
           </div>
         )}
+
+
       </div>
 
       {/* Next button (not on submit step) */}

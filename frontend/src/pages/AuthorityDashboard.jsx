@@ -10,7 +10,6 @@ import { useApp } from '../context/AppContext';
 import { getIssues as fetchIssuesApi } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import IssueTimeline from '../components/IssueTimeline';
-import EvidenceReviewCard from '../components/EvidenceReviewCard';
 import Toast from '../components/Toast';
 
 export default function AuthorityDashboard() {
@@ -810,14 +809,6 @@ export default function AuthorityDashboard() {
                   )}
                 </div>
 
-                {/* AI Evidence Review */}
-                <div>
-                  <EvidenceReviewCard
-                    evidence={selectedReport.evidence}
-                    hasImage={Boolean(selectedReport.image)}
-                    isAuthority={true}
-                  />
-                </div>
 
                 {/* Assigned Crew */}
                 {selectedReport.assignedTo && (
